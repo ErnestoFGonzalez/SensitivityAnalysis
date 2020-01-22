@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+
+    <title>Explained variance in PCA</title>
+    <meta name="author" content="Roman Cheplyaka">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <meta name="description" content="There are quite a few explanations of the principal component analysis (PCA) on the internet, some of them quite insightful. However, one issue that is usually skipped over is the variance explained by principal components, as in “the first 5 PCs explain 86% of variance”. So this is my attempt to explain the explained variance.
+">
+    
+
+    
+
+    
+
+    <style>
+    body{font-family:"Open Sans", "Droid Sans", sans-serif;font-size:17px;line-height:160%;color:#292929;word-spacing:0.7px;background-color:#fbfcf3;max-width:1000px;margin:0 auto;padding:10px 10px 30px}a:link,a:visited,a:hover,a:active{color:#1673a7;text-decoration:underline}h1 a:link,h1 a:visited,h1 a:hover,h1 a:active,h2 a:link,h2 a:visited,h2 a:hover,h2 a:active,h3 a:link,h3 a:visited,h3 a:hover,h3 a:active{color:#292929;text-decoration:none}p,ul,ol,li{margin:10px 0}ul.toc,ul.tag-list{padding:0}ul.toc li,ul.tag-list li{list-style:none}ul.toc a:link,ul.toc a:visited,ul.toc a:hover,ul.toc a:active,ul.tag-list a:link,ul.tag-list a:visited,ul.tag-list a:hover,ul.tag-list a:active{text-decoration:none}.date{color:#678090}#other-articles{margin-top:30px}h1,h2,h3,.site_header{font-weight:bold}h1{font-size:38px;line-height:110%}h2{font-size:28px;line-height:100%}h3{font-size:20px;line-height:100%}.site_header{text-align:center;padding-top:60px;padding-bottom:90px;margin:40px 0;font-size:60px;line-height:100%}.site_header a:link,.site_header a:visited,.site_header a:hover,.site_header a:active{color:inherit;text-decoration:none}@media (max-width: 600px){.site_header{padding-top:10px;padding-bottom:20px;font-size:40px;margin:26px 0}h1{font-size:30px}h2{font-size:25px}h3{font-size:20px}img,video{width:100%}ol,ul{padding-left:10px}blockquote{margin-left:0;margin-right:0}}.index li{list-style-type:none;margin-bottom:15px;margin-top:15px}.index ul{padding-left:0}code,pre{font-family:'Fira Mono', 'Inconsolata', monospace;font-size:90%;line-height:140%;word-spacing:normal}pre{background-color:#f3f3ed;padding:10px;border-radius:6px;line-height:100%;white-space:pre-wrap}.container{background-color:#fbfcf3;padding:0}figure{margin:25px 10px 25px 10px;text-align:center}caption,figcaption{font-size:smaller}caption{caption-side:bottom}code{color:inherit;background-color:inherit}blockquote{font-size:inherit;background-color:#e7e9d8;padding:10px 20px}img,video{max-width:100%}.tag-list{display:flex;flex-flow:row wrap}.tag{padding:2px 5px;margin:5px;border:black thin solid;border-radius:5px}hr{border:0;height:1px;background-image:linear-gradient(to left, rgba(150,150,150,0.2), rgba(150,150,150,0.5), rgba(150,150,150,0.2))}table{border-collapse:collapse;margin:5px auto}tr{border-bottom:#c0c0c0 1px solid}th,td{padding:3px 15px}th{font-weight:bold}a.sourceLine{display:inline-block;line-height:1.25}a.sourceLine{color:inherit;text-decoration:inherit}a.sourceLine:empty{height:1.2em;position:absolute}.sourceCode{overflow:visible}code.sourceCode{white-space:pre;position:relative}div.sourceCode{margin:1em 0}pre.sourceCode{margin:0}code span.al{color:#ff0000;font-weight:bold}code span.an{color:#60a0b0;font-weight:bold;font-style:italic}code span.at{color:#7d9029}code span.bn{color:#40a070}code span.cf{color:#007020;font-weight:bold}code span.ch{color:#4070a0}code span.cn{color:#880000}code span.co{color:#60a0b0;font-style:italic}code span.cv{color:#60a0b0;font-weight:bold;font-style:italic}code span.do{color:#ba2121;font-style:italic}code span.dt{color:#902000}code span.dv{color:#40a070}code span.er{color:#ff0000;font-weight:bold}code span.fl{color:#40a070}code span.fu{color:#06287e}code span.in{color:#60a0b0;font-weight:bold;font-style:italic}code span.kw{color:#007020;font-weight:bold}code span.op{color:#666666}code span.ot{color:#007020}code span.pp{color:#bc7a00}code span.sc{color:#4070a0}code span.ss{color:#bb6688}code span.st{color:#4070a0}code span.va{color:#19177c}code span.vs{color:#4070a0}code span.wa{color:#60a0b0;font-weight:bold;font-style:italic}
+
+    </style>
+
+    <link rel="shortcut icon" href="/img/favicon.png?v=4" />
+    <style>
+    
+    </style>
+
+    <link rel="canonical" href="https://ro-che.info/articles/2017-12-11-pca-explained-variance" />
+    <link rel="alternate" type="application/rss+xml" title="Feed" href="https://ro-che.info/articles/rss.xml" />
+
+    <!-- OpenID -->
+    
+    <!-- /OpenID -->		
+  
+    <!-- MathJax -->
+    
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: {
+          extensions: ["AMSmath.js", "AMSsymbols.js"],
+          equationNumbers: { autoNumber: "AMS" }
+        } ,
+        extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+          inlineMath: [ ["\\(","\\)"] ],
+          displayMath: [ ["\\[","\\]"] ],
+          processEscapes: true
+        },
+        "HTML-CSS": {
+          availableFonts: ["TeX"],
+          imageFont: null
+        },
+        MathMenu: {
+         showRenderer: false,
+         showFontMenu: false,
+         showLocale: false
+        }
+      });
+    </script>
+    <script src="/vendor/MathJax-2.7.0/MathJax.js"></script>
+    
+    <!-- /MathJax -->
+
+  </head>
+  <body>
+  <div class="site_header">
+    <a href="/">Roman Cheplyaka</a>
+  </div>
+  <main>
+
+  <article>
+<header>
+<h1>Explained variance in PCA</h1>
+
+<p class="date">Published on <time datetime="2017-12-11">December 11, 2017</time>
+</p>
+</header>
+
+<p>There are quite a few explanations of the principal component analysis (PCA) on the internet, some of them <a href="https://liorpachter.wordpress.com/2014/05/26/what-is-principal-component-analysis/">quite insightful</a>. However, one issue that is usually skipped over is the variance explained by principal components, as in “the first 5 PCs explain 86% of variance”. So this is my attempt to explain the explained variance.</p>
+<h2 id="tldr">TL;DR</h2>
+<p>The <strong>total variance</strong> is the sum of variances of all individual principal components.</p>
+<p>The fraction of <strong>variance explained</strong> by a principal component is the ratio between the variance of that principal component and the total variance.</p>
+<p>For several principal components, add up their variances and divide by the total variance.</p>
+<h2 id="example-explanation">Example &amp; explanation</h2>
+<p>Let’s define a data set (matrix) in R that consists of 3 variables (columns) and 4 observations (rows), where the third variable is roughly the average of the first two.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1"><span class="kw">set.seed</span>(<span class="dv">2018</span>)</a>
+<a class="sourceLine" id="cb1-2" title="2">mx &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rnorm</span>(<span class="dv">4</span><span class="op">*</span><span class="dv">2</span>), <span class="dt">nrow=</span><span class="dv">4</span>, <span class="dt">ncol=</span><span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb1-3" title="3">mx &lt;-<span class="st"> </span><span class="kw">cbind</span>(mx, (mx[,<span class="dv">1</span>]<span class="op">+</span>mx[,<span class="dv">2</span>])<span class="op">/</span><span class="dv">2</span> <span class="op">+</span><span class="st"> </span><span class="kw">rnorm</span>(<span class="dv">4</span>, <span class="dt">sd=</span><span class="fl">0.4</span>))</a>
+<a class="sourceLine" id="cb1-4" title="4">mx</a></code></pre></div>
+<pre><code>            [,1]       [,2]       [,3]
+[1,] -0.42298398  1.7352837  0.4119150
+[2,] -1.54987816 -0.2647112 -0.6524724
+[3,] -0.06442932  2.0994707  0.7603068
+[4,]  0.27088135  0.8633512  0.1551048</code></pre>
+<p>And let’s compute the sample variances of each of the 3 variables (columns):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">vars &lt;-<span class="st"> </span><span class="kw">apply</span>(mx, <span class="dv">2</span>, var)</a>
+<a class="sourceLine" id="cb3-2" title="2">vars</a></code></pre></div>
+<pre><code>[1] 0.6261715 1.1068959 0.3612204</code></pre>
+<p>Note that these are different from true population variances, which we know to be equal to 1, 1, and 0.66, respectively.</p>
+<p>When talking about PCA, the sum of the sample variances of all individual variables is called the <em>total variance</em>. If we divide individual variances by the total variance, we’ll see how much variance each variable explains:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1">vars<span class="op">/</span><span class="kw">sum</span>(vars)</a></code></pre></div>
+<pre><code>[1] 0.2989902 0.5285309 0.1724789</code></pre>
+<p>The highest fraction of explained variance among these variables is 53%, and the lowest one is 17%. We can also compute these fractions for subsets of variables. For instance, variables 1 and 2 together explain 83% of the total variance, and variables 1 and 3 explain 47%.</p>
+<p>Principal component analysis computes a new set of variables (“principal components”) and expresses the data in terms of these new variables. Considered together, the new variables represent the same amount of information as the original variables, in the sense that we can restore the original data set from the transformed one.</p>
+<p>Moreover, the total variance remains the same. However, it is redistributed among the new variables in the most “unequal” way: the first variable not only explains the most variance among the new variables, but the most variance a single variable can possibly explain.</p>
+<p>More generally, the first <span class="math inline">\(k\)</span> principal components (where <span class="math inline">\(k\)</span> can be 1, 2, 3 etc.) explain the most variance any <span class="math inline">\(k\)</span> variables can explain, and the last <span class="math inline">\(k\)</span> variables explain the least variance any <span class="math inline">\(k\)</span> variables can explain, under some general restrictions. (The restrictions ensure, for example, that we cannot adjust a variable’s explained variance simply by scaling it.)</p>
+<p>Let’s try this in practice. This is our data set expressed in the new variables (“principal components”) called PC1, PC2, and PC3:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1">pca &lt;-<span class="st"> </span><span class="kw">prcomp</span>(mx, <span class="dt">retx=</span>T)</a>
+<a class="sourceLine" id="cb7-2" title="2">mx_transformed &lt;-<span class="st"> </span>pca<span class="op">$</span>x</a>
+<a class="sourceLine" id="cb7-3" title="3">mx_transformed</a></code></pre></div>
+<pre><code>            PC1        PC2          PC3
+[1,] -0.5876362 -0.3227198  0.055468818
+[2,]  1.9378229 -0.1805488 -0.012606347
+[3,] -1.1907211 -0.2331953 -0.048668119
+[4,] -0.1594657  0.7364640  0.005805649</code></pre>
+<p>These are the sample variances of the new variables.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">vars_transformed &lt;-<span class="st"> </span><span class="kw">apply</span>(mx_transformed, <span class="dv">2</span>, var)</a>
+<a class="sourceLine" id="cb9-2" title="2"><span class="co"># or: pca$sdev^2</span></a>
+<a class="sourceLine" id="cb9-3" title="3">vars_transformed</a></code></pre></div>
+<pre><code>        PC1         PC2         PC3 
+1.847906652 0.244501735 0.001879334 </code></pre>
+<p>Notice that their sum, the total variance, is the same as for the original variables: 2.09.</p>
+<p>And these are the same variances divided by the total variance, i.e. how much of the total variance each new variable explains:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1">vars_transformed<span class="op">/</span><span class="kw">sum</span>(vars_transformed)</a></code></pre></div>
+<pre><code>         PC1          PC2          PC3 
+0.8823556734 0.1167469648 0.0008973618 </code></pre>
+<p>In the original data set, the highest explained variance by a single variable was 53%; here it’s 88%. And the lowest explained variance dropped from 17% to less than 0.1%. The highest explained variance by two variables also increased, from 83% to 99.9%, and so on. (Because the total variance has not changed, these observation about the fractions of the total variance are equally valid for the variances themselves.)</p>
+<p>Caution: PCA, being derived from noisy data, is itself noisy. For instance, it would be a mistake to conclude that there exists a parameter that explains 88% of the variability in the actual quantities we have measured. The true fraction of total variance that can be captured by a single variable in this case is only around 60%, and we would get closer to it if we increased our sample size.</p>
+<h2 id="mathematical-justification">Mathematical justification</h2>
+<p>Hopefully the above explanation makes an intuitive sense. But, from a mathematical perspective, it raises several questions:</p>
+<ol type="1">
+<li>What does it mean to introduce new variables?</li>
+<li>Why is the total variance preserved?</li>
+<li>Why can’t we make the variance for individual variables as low or high as we want simply by scaling them?</li>
+<li>Why is it desirable to maximize explained variance?</li>
+</ol>
+<p>Let <span class="math inline">\(X\)</span> be an <span class="math inline">\(n\times p\)</span> matrix whose columns correspond to <span class="math inline">\(p\)</span> variables and whose rows correspond to <span class="math inline">\(n\)</span> samples or measurements.</p>
+<p>What does it mean to introduce new variables? In a very general sense, it means coming up with a mapping (mathematical function) <span class="math inline">\(f:\mathbb{R}^p\to\mathbb{R}^q\)</span> from the old variables to the new ones, such that it has an inverse <span class="math inline">\(f^{-1}:\mathbb{R}^q\to\mathbb{R}^p\)</span>, which restores the original data. The function <span class="math inline">\(f\)</span> is then applied to each row of <span class="math inline">\(X\)</span> to get the new data matrix, <span class="math inline">\(Z\)</span>.</p>
+<p>This formulation is too general, however. For example, because <span class="math inline">\(\mathbb{R}^p\)</span> is isomoprhic (as a set) to <span class="math inline">\(\mathbb{R}\)</span>, we can encode everything in a single variable. But the relationship between the old variables and the new one will be very non-trivial. The new variable, even though it encodes precisely the same information, would tell us nothing meaningful about the data.</p>
+<p>Therefore, we need to impose some restrictions on the nature of <span class="math inline">\(f\)</span>. Here we require that <span class="math inline">\(f\)</span> be a linear function; so that <span class="math inline">\(f(\mathrm{x})=\mathrm{x}A\)</span>, where <span class="math inline">\(\mathrm{x}\)</span> is a row of <span class="math inline">\(X\)</span> and <span class="math inline">\(A\)</span> is a <span class="math inline">\(p\times q\)</span> matrix. The new data matrix can be then computed as <span class="math inline">\(Z = X A\)</span>.</p>
+<p>Now it’s no longer possible to squeeze everything into a single variable; for the inverse mapping to exist we need <span class="math inline">\(q\geq p\)</span>. Because we are trying to <em>reduce</em> the dimensionality of the data, not <em>expand</em> it, we’ll stick with <span class="math inline">\(q=p\)</span>, so <span class="math inline">\(A\)</span> is an invertible <span class="math inline">\(p\times p\)</span> square matrix.</p>
+<p>But even an invertible linear transformation is too general for PCA because it does not preserve the total variance.</p>
+<p>From now on, we shall assume that the sample mean of each column of <span class="math inline">\(X\)</span> is 0. This can be achieved by subtracting from each column its mean value. Under this assumption, the covariance matrix of <span class="math inline">\(X\)</span> has a very simple form: <span class="math inline">\(\mathrm{Cov}(X)=\frac1{n-1} X&#39;X\)</span>. Also, if the columns of <span class="math inline">\(X\)</span> have zero mean, so do the column of <span class="math inline">\(Z=XA\)</span>:</p>
+<p><span class="math display">\[
+\begin{split}
+\left(\frac1n\quad \frac1n\quad \ldots\quad \frac1n\right) Z &amp;= 
+\left(\frac1n\quad \frac1n\quad \ldots\quad \frac1n\right) X A\\ &amp;= 
+\left(0\quad 0\quad \ldots\quad 0\right) A\\ &amp;=
+\left(0\quad 0\quad \ldots\quad 0\right).
+\end{split}
+\]</span></p>
+<p>Then the covariance matrix of <span class="math inline">\(Z\)</span> is <span class="math display">\[\mathrm{Cov}(Z)=\frac1{n-1} Z&#39;Z=\frac1{n-1} A&#39;X&#39;XA=A&#39;\mathrm{Cov}(X)A.\]</span></p>
+<p>The total variance of <span class="math inline">\(X\)</span> is the sum of the diagonal elements in the covariance matrix <span class="math inline">\(\mathrm{Cov}(X)\)</span>, i.e. its <em>trace</em>, <span class="math inline">\(\mathrm{Tr}(\mathrm{Cov}(X))\)</span>.</p>
+<p>In general, a transformation <span class="math inline">\(\mathrm{Cov}(X)\mapsto A&#39;\mathrm{Cov}(X)A\)</span> does not preserve the trace of the matrix <span class="math inline">\(\mathrm{Cov}(X)\)</span>. For instance, multiplying all variables by a constant number <span class="math inline">\(c\)</span> is a linear transformation with matrix <span class="math inline">\(c\cdot I\)</span>. This transformation will inflate the total variance by a factor of <span class="math inline">\(c^2\)</span>.</p>
+<p>To ensure that the total variance does not change, we require that <span class="math inline">\(\mathrm{Cov}(X)\mapsto A&#39;\mathrm{Cov}(X)A\)</span> is a <a href="https://en.wikipedia.org/wiki/Matrix_similarity">similarity transformation</a>, which always preserves the trace of the matrix it transforms. This is equivalent to saying that <span class="math inline">\(A^{-1}=A&#39;\)</span>, or that <span class="math inline">\(A\)</span> is <a href="https://en.wikipedia.org/wiki/Orthogonal_matrix">orthogonal</a>.</p>
+<p>Preserving the total variance is not the only (or even an important) reason to require that the change of variables is an orthogonal transformation. As we saw earlier, the transformation <span class="math inline">\(c\cdot I\)</span> inflates the total variance by the factor of <span class="math inline">\(c^2\)</span>, but it does so by uniformly inflating the variance of each variable. So when we compute the fraction of the total variance explained by the variables, that common factor cancels out.</p>
+<p>The real problem is that we could rescale individual variables. Consider a <span class="math inline">\(2\times 2\)</span> matrix</p>
+<p><span class="math display">\[
+A=\pmatrix{a_{11}&amp;0\\0&amp;a_{22}}.
+\]</span></p>
+<p>Unless <span class="math inline">\(a_{11}\)</span> and <span class="math inline">\(a_{22}\)</span> are <span class="math inline">\(\pm 1\)</span>, <span class="math inline">\(A\)</span> is not orthogonal. So, in general, <span class="math inline">\(A\)</span> will not preserve the total variance of <em>every</em> matrix. However, for <em>any given</em> matrix <span class="math inline">\(X\)</span>, there are many possible values of <span class="math inline">\(a_{11}\)</span> and <span class="math inline">\(a_{22}\)</span> that will preserve <span class="math inline">\(X\)</span>’s total variance: they form an ellipse</p>
+<p><span class="math display">\[a_{11}^2\mathrm{Var}(X_{\cdot 1})+a_{22}^2\mathrm{Var}(X_{\cdot 2})=\mathrm{Var}(X_{\cdot 1})+\mathrm{Var}(X_{\cdot 2}).\]</span></p>
+<p>Recall that the objective of PCA is make the first variable explain the maximum fraction of the total variance. By choosing <span class="math inline">\(a_{22}\)</span> close to zero (and inferring <span class="math inline">\(a_{11}\)</span> from the above equation), we can make the fraction of variance “explained” by the first principal component arbitrarily close to 1 without transforming the data in any meaningful way.</p>
+<p>This kind of cheating is made impossible by requiring that <span class="math inline">\(A\)</span> is orthogonal.</p>
+<p>Now let’s talk about <em>why</em> it’s desirable to maximize the explained variance. The typical use of PCA is to keep only the first <span class="math inline">\(k&lt;p\)</span> principal components. Because PCA is an orthogonal transformation, this corresponds to projecting the data from its original <span class="math inline">\(p\)</span>-dimensional space to a <span class="math inline">\(k\)</span>-dimensional subspace. The remaining <span class="math inline">\(p-k\)</span> components are lost in this projection; so it makes sense to minimize the variability of the data in those directions. Because the total variance is constant, minimizing the variance of the last <span class="math inline">\(p-k\)</span> variables is the same as maximizing the variance of the first <span class="math inline">\(k\)</span> variables. The choices we make in PCA are motivated precisely by this objective:</p>
+<ol type="1">
+<li>PCA itself is designed to maximize the variance of the first <span class="math inline">\(k\)</span> components, and minimize the variance of the last <span class="math inline">\(p-k\)</span> components, compared to all other orthogonal transformations.</li>
+<li>We choose the first <span class="math inline">\(k\)</span> components, and not just <em>some</em> <span class="math inline">\(k\)</span> components, because they have the highest variance out of all principal components.</li>
+<li>We try to choose <span class="math inline">\(k\)</span> big enough to make the lost information — the variance of the last <span class="math inline">\(p-k\)</span> components — sufficiently small.</li>
+</ol>
+
+</article>
+
+<footer id="other-articles">
+  <a href="/articles/">Other articles</a>
+  | <a href="/articles/rss.xml">Subscribe via RSS</a>
+</footer>
+
+<script type="application/ld+json">
+{ "@context": "http://schema.org"
+, "@type": "Article"
+, "name": "Explained variance in PCA"
+, "headline": "Explained variance in PCA"
+
+, "author": { "@type": "Person", "name": "Roman Cheplyaka" }
+, "publisher": { "@type": "Person", "name": "Roman Cheplyaka" }
+, "url": "https://ro-che.info/articles/2017-12-11-pca-explained-variance"
+, "datePublished": "2017-12-11"
+, "dateCreated": "2017-12-11"
+
+, "dateModified": "2017-12-11"
+
+}
+</script>
+
+
+  </main>
+  </body>
+</html>
